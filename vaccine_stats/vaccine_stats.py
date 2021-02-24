@@ -14,16 +14,17 @@ class Vax_Stats:
 
     Attributes:
         ODH_URL (string): URL for CSV vaccine data published by ODH.
+        SELF_PATH (Path): Path to this file.
+        POPULATION_PATH (Path): Path to population.csv.
         POPULATION (dict): List of Ohio counties and associated
             populations. Data is from the United States Census Bureau.
             Loaded from `population.csv`.
     """
 
     ODH_URL = "https://coronavirus.ohio.gov/static/dashboards/vaccine_data.csv"
+    SELF_PATH = pathlib.Path(__file__).parent.absolute()
+    POPULATION_PATH = SELF_PATH.joinpath("population.csv")
     POPULATION = {}
-    POPULATION_PATH = (
-        pathlib.Path(__file__).parent.absolute().joinpath("population.csv")
-    )
 
     def __init__(self) -> None:
         """Initialize vaccination data"""
@@ -190,39 +191,39 @@ class Vax_Stats:
                 vaccination rates or is predicted to take longer than 2
                 years.
         """
-        n_vax_started, n_vax_full = self.lookup(county, front_date)
-        n_vax_started -= n_vax_full  # Correct for completed vaccine series
+        # Calculate total number of currently vaccinated people
+        n_started, n_full = self.lookup(county, front_date)
+        n_started -= n_full  # Correct for completed series
 
-        d_vax = self.delta(county, back_date, front_date, False)
+        # Calculate the rates at which vaccinations are occurring
+        d_started, d_full = self.delta(county, back_date, front_date, False)
+        d_started -= d_full  # Rough estimate correction for completed series
         d_t = (front_date - back_date).days
-        vax_rate = tuple(map(lambda x: x / d_t, d_vax))
-        completion_rate = vax_rate[0] - vax_rate[1]
+        d_started /= d_t
+        d_full /= d_t
 
         population = self.POPULATION[county]
 
+        # Look forward up to two years
         days_to_herd_imm = 0
         for day in range(1, 731):
-            # Calculate how many people will have been vaccinated after
-            # day n
-            n_vax_started += vax_rate[0] - completion_rate
-            n_vax_full += vax_rate[1]
+            n_started += d_started
+            n_full += d_full
 
-            if n_vax_full + n_vax_started > population:
-                raise ValueError(
-                    "Herd immunity is impossible at current vaccination rates."
-                )
+            if n_full + n_started > population:
+                raise ValueError("No herd immunity at current rate.")
 
             # Calculate proportional efficacy accounting for the
             # proportion of people receiving a starter dose versus
             # completing a dose
-            e_started = n_vax_started * started_efficacy
-            e_full = n_vax_full * full_efficacy
-            efficacy = (e_started + e_full) / (n_vax_started + n_vax_full)
+            e_started = n_started * started_efficacy
+            e_full = n_full * full_efficacy
+            efficacy = (e_started + e_full) / (n_started + n_full)
 
             # Calculate herd immunity requirement
             herd_pct = (1 - (1 / r_0)) / efficacy
 
-            if n_vax_started + n_vax_full >= population * herd_pct:
+            if n_started + n_full >= population * herd_pct:
                 days_to_herd_imm = day
                 return date.today() + timedelta(days_to_herd_imm)
         raise ValueError("Herd immunity will take > 2 years.")

@@ -45,7 +45,7 @@ ODH updates their data approximately daily. You can use the `odh_latest` functio
 latest_date = data.odh_latest()
 print(latest_date)
 
-# 2021-02-23
+# Output: 2021-02-23
 ```
 
 ## Look up vaccination data
@@ -145,8 +145,8 @@ The `predict_herd_immunity` function attempts to estimate a date at which herd i
 d = data.predict_herd_immunity()
 print(d)
 
-# Output: 2021-08-02
-# The predicted immunity date is August 2, 2021 as of the date the program was run.
+# Output: 2022-01-13
+# The predicted immunity date is January 13, 2022 as of the date the program was run.
 ```
 
 # Contributing
