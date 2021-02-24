@@ -3,6 +3,7 @@ import tempfile
 import shutil
 from datetime import date, timedelta, datetime
 import csv
+import pathlib
 
 
 class Vax_Stats:
@@ -20,6 +21,9 @@ class Vax_Stats:
 
     ODH_URL = "https://coronavirus.ohio.gov/static/dashboards/vaccine_data.csv"
     POPULATION = {}
+    POPULATION_PATH = (
+        pathlib.Path(__file__).parent.absolute().joinpath("population.csv")
+    )
 
     def __init__(self) -> None:
         """Initialize vaccination data"""
@@ -28,7 +32,7 @@ class Vax_Stats:
 
     def _get_populations(self):
         """Load population data from population.csv"""
-        with open("vaccine_stats/population.csv", newline="") as data_file:
+        with open(self.POPULATION_PATH, newline="") as data_file:
             reader = csv.DictReader(data_file)
             for row in reader:
                 self.POPULATION[row["county"]] = int(row["population"])
