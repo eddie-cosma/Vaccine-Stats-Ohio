@@ -14,7 +14,7 @@ SOFTWARE.
 
 # Installation
 
-Use the package manager [pip](https://pip.pypa.io/en/stable/) to install foobar.
+Use the package manager [pip](https://pip.pypa.io/en/stable/) to install.
 
 ```bash
 pip install vaccine-stats-ohio
@@ -139,7 +139,7 @@ The `predict_herd_immunity` function attempts to estimate a date at which herd i
 > * The model currently assumes that a complete vaccination series confers 95% protection against COVID-19 (`full_efficacy=0.95`) whereas a single dose confers 50% protection (`started_efficacy=0.5`).<sup>2,3</sup> Some estimates suggest that a single dose of the vaccine could provide higher levels of protection than previously thought.<sup>4</sup>
 > * The model calculates the rate at which people are being vaccinated using the `delta` function and extrapolates this into the future assuming a linear vaccination rate. In reality, vaccination rates may increase or decrease based on a number of factors including product availability, emergency use authorization of novel vaccines, and prevailing attitudes towards vaccination.
 >
-> Because of these limitations, output from this function should be viewed with a high degree of skepticism. It constitutes a best effort attempt at predicting when herd immunity will be reached, but with a high degree of variability that is itself difficult to quantify. See [Disclaimer].
+> Because of these limitations, output from this function should be viewed with a high degree of skepticism. It constitutes a best effort attempt at predicting when herd immunity will be reached, but with a high degree of variability that is itself difficult to quantify. See Disclaimer above.
 
 ```python
 d = data.predict_herd_immunity()
