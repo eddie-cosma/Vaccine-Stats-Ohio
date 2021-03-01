@@ -53,7 +53,7 @@ class Vax_Stats:
         with open(self.data_file.name, newline="") as data_file:
             reader = csv.DictReader(data_file)
             for row in reader:
-                p_date = datetime.strptime(row["date"], "%Y-%m-%d").date()
+                p_date = datetime.strptime(row["date"], "%m/%d/%Y").date()
                 if p_date > latest:
                     latest = p_date
         return latest
@@ -84,9 +84,16 @@ class Vax_Stats:
         with open(self.data_file.name, newline="") as data_file:
             reader = csv.DictReader(data_file)
             for row in reader:
-                p_date = datetime.strptime(row["date"], "%Y-%m-%d").date()
-                ok_date = (p_date <= date) if cumulative else (p_date == date)
-                if (row["county"] == county or county == "All") and ok_date:
+                p_date = datetime.strptime(row["date"], "%m/%d/%Y").date()
+                if cumulative:
+                    date_ok = p_date <= date
+                else:
+                    date_ok = p_date == date
+
+                p_county = row["county"].rstrip()
+                county_ok = p_county == county or county == "All"
+
+                if county_ok and date_ok:
                     add = (
                         int(row["vaccines_started"]),
                         int(row["vaccines_completed"]),

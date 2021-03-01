@@ -7,7 +7,7 @@ with open("README.md") as readme_file:
 
 setup(
     name="vaccine-stats-ohio",
-    version="1.0r7",
+    version="1.0r8",
     description="Access and summarize Ohio COVID vaccine statistics",
     author="Eddie Cosma",
     author_email="vaxstat@eddiecosma.com",
@@ -16,7 +16,7 @@ setup(
     long_description_content_type="text/markdown",
     classifiers=[
         "Development Status :: 5 - Production/Stable",
-        "License :: OSI Approved :: The Unlicense (Unlicense)",
+        "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
