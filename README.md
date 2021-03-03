@@ -28,7 +28,9 @@ To get started, import the `Vax_Stats` class and initialize it. Vaccine statisti
 
 ```python
 from vaccine_stats import Vax_Stats
-data = Vax_Stats()
+
+with Vax_Stats() as data:
+    ...
 ```
 
 Note that you may also want to import the date class, as it is used frequently in data lookups.
@@ -42,7 +44,8 @@ from datetime import date
 ODH updates their data approximately daily. You can use the `odh_latest` function to determine what day the latest data is for. Note that data for the current day is usually incomplete, therefore it is wise to look back at least a day or two for accurate statistics.
 
 ```python
-latest_date = data.odh_latest()
+with Vax_Stats() as data:
+    latest_date = data.odh_latest()
 print(latest_date)
 
 # Output: 2021-02-23
@@ -55,7 +58,8 @@ Vaccine data can be browsed by county and date using the `lookup` function. Stat
 By default, data is returned cumulatively for all counties up through the current date.
 
 ```python
-n = data.lookup()
+with Vax_Stats() as data:
+    n = data.lookup()
 print(n)
 
 # Output: (1474872, 707396)
@@ -65,7 +69,8 @@ print(n)
 Data can also be returned for inidividual counties and/or through a past date.
 
 ```python
-n = data.lookup(county="Cuyahoga", date=date(2021, 2, 1))
+with Vax_Stats() as data:
+    n = data.lookup(county="Cuyahoga", date=date(2021, 2, 1))
 print(n)
 
 # Output: (94757, 24969)
@@ -75,7 +80,12 @@ print(n)
 Data can also be displayed for an individual date (not cumulatively) using the `cumulative=False` argument.
 
 ```python
-n = data.lookup(county="Cuyahoga", date=date(2021, 2, 1), cumulative=False)
+with Vax_Stats() as data:
+    n = data.lookup(
+        county="Cuyahoga",
+        date=date(2021, 2, 1),
+        cumulative=False
+        )
 print(n)
 
 # Output: (2065, 2804)
@@ -87,7 +97,11 @@ print(n)
 The `delta` function takes two dates and returns a tuple in the same format as the `lookup` function, but with numbers indicating the percent change in *cumulative* vaccinations between two dates.
 
 ```python
-p = data.delta(back_date=date(2021, 2, 7), front_date=date(2021, 2, 14))
+with Vax_Stats() as data:
+    p = data.delta(
+        back_date=date(2021, 2, 7),
+        front_date=date(2021, 2, 14)
+        )
 print(p)
 
 # Output: (18.4, 48.6)
@@ -97,7 +111,12 @@ print(p)
 The `delta` function can also output raw vaccination numbers instead of percentages using the `percent=False` argument.
 
 ```python
-n = data.delta(back_date=date(2021, 2, 7), front_date=date(2021, 2, 14), percent=False)
+with Vax_Stats() as data:
+    n = data.delta(
+        back_date=date(2021, 2, 7),
+        front_date=date(2021, 2, 14),
+        percent=False
+        )
 print(n)
 
 # Output: (208761, 162962)
@@ -111,7 +130,8 @@ The `delta` function also takes `county` as an argument, defaulting to `county="
 The percentage of the population that has been vaccinated can be found using the `percent_vaccinated` function. This defaults to showing the current totals for all counties. The function can be customized using the `county` and `date` arguments as per above.
 
 ```python
-p = data.percent_vaccinated()
+with Vax_Stats() as data:
+    p = data.percent_vaccinated()
 print(p)
 
 # Output: 6.1
@@ -121,7 +141,8 @@ print(p)
 Data can also be displayed based on the number of people who received at least one dose of the vaccine rather than just those who have completed a vaccination series using the `fully_vaccinated=False` argument. 
 
 ```python
-p = data.percent_vaccinated(fully_vaccinated=False)
+with Vax_Stats() as data:
+    p = data.percent_vaccinated(fully_vaccinated=False)
 print(p)
 
 # Output: 12.6
@@ -135,14 +156,17 @@ The `predict_herd_immunity` function attempts to estimate a date at which herd i
 > ### **Caution**
 > This function makes a number of assumptions that must be carefully considered.
 >
-> * The `r_0` (r<sub>0</sub>) argument defaults to 2.5. This is based on an estimate from the CDC in the absence of widespread masking and social distancing measures.<sup>1</sup> The current model is imperfect because it does not account for individuals becoming less susceptible due to previous infection or vaccination. It also does not account for changes in transmissibility due to emerging vaccine variants.
-> * The model currently assumes that a complete vaccination series confers 95% protection against COVID-19 (`full_efficacy=0.95`) whereas a single dose confers 50% protection (`started_efficacy=0.5`).<sup>2,3</sup> Some estimates suggest that a single dose of the vaccine could provide higher levels of protection than previously thought.<sup>4</sup>
-> * The model calculates the rate at which people are being vaccinated using the `delta` function and extrapolates this into the future assuming a linear vaccination rate. In reality, vaccination rates may increase or decrease based on a number of factors including product availability, emergency use authorization of novel vaccines, and prevailing attitudes towards vaccination.
+> * The `r_0` (r<sub>0</sub>) argument defaults to 2.5. This is based on an estimate from the CDC in the absence of widespread masking and social distancing measures.<sup>1</sup> This value was calculated early in the pandemic and is subject to error due to lack of available data at that time. The r<sub>0</sub> of COVID-19 in Ohio with mitigating measures has been closer to 1.0.<sup>1</sup>
+> * The use of r<sub>0</sub> is inherently flawed because if assumes a completely susceptible population.<sup>2</sup> In other words, it does not account for individuals becoming less susceptible due to previous infection or vaccination. Previous estimates of r<sub>0</sub> also do not account for changes in transmissibility due to emerging vaccine variants.
+> * The model currently assumes that a complete vaccination series confers 95% protection against COVID-19 (`full_efficacy=0.95`) whereas a single dose confers 50% protection (`started_efficacy=0.5`).<sup>3,4</sup> Some estimates suggest that a single dose of the vaccine could provide higher levels of protection than previously thought.<sup>5</sup> The model does not take into account the time it takes for immunity to be reached after vaccination and does not account for immunity waning over time.
+> * The model calculates the rate at which people are being vaccinated using the `delta` function and extrapolates this into the future assuming a linear vaccination rate. In reality, vaccination rates may be nonlinear or otherwise fluctuate based on a number of factors including product availability, emergency use authorization of novel vaccines, and prevailing attitudes towards vaccination.
+> * Because data is analyzed in aggregate for the state of Ohio, the assumption is that vaccination pravalence and incidence are homogenous across the state. This is not the case. Because of differences in geographic vaccination rates, many areas may see herd immunity slower than predicted.
 >
 > Because of these limitations, output from this function should be viewed with a high degree of skepticism. It constitutes a best effort attempt at predicting when herd immunity will be reached, but with a high degree of variability that is itself difficult to quantify. See Disclaimer above.
 
 ```python
-d = data.predict_herd_immunity()
+with Vax_Stats() as data:
+    d = data.predict_herd_immunity()
 print(d)
 
 # Output: 2022-01-13
@@ -158,6 +182,7 @@ This software is licensed under the [MIT License](https://choosealicense.com/lic
 # References
 
 1. https://coronavirus.ohio.gov/wps/portal/gov/covid-19/resources/news-releases-news-you-can-use/basic-reproduction-number-pop-up-sites
-2. Polack FP, Thomas SJ, Kitchin N, Absalon J, Gurtman A, Lockhart S, et al. Safety and Efficacy of the BNT162b2 mRNA Covid-19 Vaccine. *New England Journal of Medicine*. 2020;383(27):2603–15.
-3. Baden LR, El Sahly HM, Essink B, Kotloff K, Frey S, Novak R, et al. Efficacy and Safety of the mRNA-1273 SARS-CoV-2 Vaccine. *New England Journal of Medicine*. 2021;384(5):403–16.
-4. Skowronski DM, De Serres G. Safety and Efficacy of the BNT162b2 mRNA Covid-19 Vaccine. *New England Journal of Medicine*. Published online February 17, 2021.
+1. Delamater PL, Street EJ, Leslie TF, Yang YT, Jacobsen KH. Complexity of the Basic Reproduction Number (R<sub>0</sub>). *Emerging Infectious Diseases*. 2019;25(1):1–4.
+1. Polack FP, Thomas SJ, Kitchin N, Absalon J, Gurtman A, Lockhart S, et al. Safety and Efficacy of the BNT162b2 mRNA Covid-19 Vaccine. *New England Journal of Medicine*. 2020;383(27):2603–15.
+1. Baden LR, El Sahly HM, Essink B, Kotloff K, Frey S, Novak R, et al. Efficacy and Safety of the mRNA-1273 SARS-CoV-2 Vaccine. *New England Journal of Medicine*. 2021;384(5):403–16.
+1. Skowronski DM, De Serres G. Safety and Efficacy of the BNT162b2 mRNA Covid-19 Vaccine. *New England Journal of Medicine*. Published online February 17, 2021.

@@ -1,6 +1,6 @@
 import urllib.request as url
 import tempfile
-import shutil
+import shutil, os
 from datetime import date, timedelta, datetime
 import csv
 import pathlib
@@ -30,6 +30,12 @@ class Vax_Stats:
         """Initialize vaccination data"""
         self._get_populations()
         self._get_odh_data()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        os.unlink(self.data_file.name)
 
     def _get_populations(self):
         """Load population data from population.csv"""
