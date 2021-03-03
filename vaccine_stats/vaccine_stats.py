@@ -51,7 +51,6 @@ class Vax_Stats:
             with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
                 shutil.copyfileobj(response, tmp_file)
         self.data_file = tmp_file
-        print(tmp_file.name)
 
     def odh_latest(self):
         """Find the latest date posted in ODH statistics"""
