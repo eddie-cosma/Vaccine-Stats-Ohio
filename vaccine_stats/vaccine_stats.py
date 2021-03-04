@@ -52,13 +52,26 @@ class Vax_Stats:
                 shutil.copyfileobj(response, tmp_file)
         self.data_file = tmp_file
 
+    def _process_date(self, date: str) -> date:
+        """Convert ODH date into date object.
+
+        Need a separate function because they keep changing the format.
+        """
+        formats = ["%m/%d/%Y", "%Y-%m-%d"]
+        for f in formats:
+            try:
+                return datetime.strptime(date, f).date()
+            except ValueError:
+                pass
+        raise ValueError("ODH date format is not supported.")
+
     def odh_latest(self):
         """Find the latest date posted in ODH statistics"""
         latest = date(2020, 12, 14)
         with open(self.data_file.name, newline="") as data_file:
             reader = csv.DictReader(data_file)
             for row in reader:
-                p_date = datetime.strptime(row["date"], "%m/%d/%Y").date()
+                p_date = self._process_date(row["date"])
                 if p_date > latest:
                     latest = p_date
         return latest
@@ -89,7 +102,7 @@ class Vax_Stats:
         with open(self.data_file.name, newline="") as data_file:
             reader = csv.DictReader(data_file)
             for row in reader:
-                p_date = datetime.strptime(row["date"], "%m/%d/%Y").date()
+                p_date = self._process_date(row["date"])
                 if cumulative:
                     date_ok = p_date <= date
                 else:
