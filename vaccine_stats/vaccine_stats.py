@@ -52,7 +52,7 @@ class Vax_Stats:
                 shutil.copyfileobj(response, tmp_file)
         self.data_file = tmp_file
 
-    def _process_date(self, date: str) -> date:
+    def _process_date(self, odh_date: str) -> date:
         """Convert ODH date into date object.
 
         Need a separate function because they keep changing the format.
@@ -60,7 +60,7 @@ class Vax_Stats:
         formats = ["%m/%d/%Y", "%Y-%m-%d"]
         for f in formats:
             try:
-                return datetime.strptime(date, f).date()
+                return datetime.strptime(odh_date, f).date()
             except ValueError:
                 pass
         raise ValueError("ODH date format is not supported.")
