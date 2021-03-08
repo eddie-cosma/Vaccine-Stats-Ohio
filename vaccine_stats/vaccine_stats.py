@@ -79,7 +79,7 @@ class Vax_Stats:
     def lookup(
         self,
         county: str = "All",
-        date: date = date.today(),
+        date: date = date.today() - timedelta(1),
         cumulative: bool = True,
     ) -> tuple:
         """Lookup county data by date from ODH vaccination records.
@@ -87,7 +87,7 @@ class Vax_Stats:
         Args:
             county (str, optional): County name or "All" for entire
                 state. Defaults to "All".
-            date (date, optional): Date of data. Defaults to today.
+            date (date, optional): Date of data. Defaults to yesterday.
             cumulative (bool, optional): Return cumulative data if True
             (default) or single-day data if False.
 
@@ -122,8 +122,8 @@ class Vax_Stats:
     def delta(
         self,
         county: str = "All",
-        back_date: date = date.today() - timedelta(7),
-        front_date: date = date.today(),
+        back_date: date = date.today() - timedelta(8),
+        front_date: date = date.today() - timedelta(1),
         percent: bool = True,
     ) -> tuple:
         """Find change in total vaccinations across two time points.
@@ -132,9 +132,9 @@ class Vax_Stats:
             county (str, optional): County name or "All" for entire
                 state. Defaults to "All".
             back_date (date, optional): Previous date to use for
-                comparison. Defaults to one week ago.
+                comparison. Defaults to a week before yesterday.
             front_date (date, optional): More recent date to use for
-                comparison. Defaults to today.
+                comparison. Defaults to yesterday.
             percent (bool, optional): Return change as percentage if
                 True (default) or integer if False.
 
@@ -158,7 +158,7 @@ class Vax_Stats:
     def percent_vaccinated(
         self,
         county: str = "All",
-        date: date = date.today(),
+        date: date = date.today() - timedelta(1),
         fully_vaccinated: bool = True,
     ) -> float:
         """Get percentage of total population vaccinated.
@@ -166,7 +166,7 @@ class Vax_Stats:
         Args:
             county (str, optional): County name or "All" for entire
                 state. Defaults to "All".
-            date (date, optional): Date of data. Defaults to today.
+            date (date, optional): Date of data. Defaults to yesterday.
             fully_vaccinated (bool, optional): Count only people who
                 received a full vaccination series if True (default).
                 If False, count all people who received at least one
@@ -185,8 +185,8 @@ class Vax_Stats:
     def predict_herd_immunity(
         self,
         county: str = "All",
-        back_date: date = date.today() - timedelta(7),
-        front_date: date = date.today(),
+        back_date: date = date.today() - timedelta(8),
+        front_date: date = date.today() - timedelta(1),
         r_0: float = 2.5,
         started_efficacy: float = 0.5,
         full_efficacy: float = 0.95,
@@ -197,9 +197,10 @@ class Vax_Stats:
             county (str, optional): County name or "All" for entire
                 state. Defaults to "All".
             back_date (date, optional): Previous date to use for
-                vaccination rate calculation. Defaults to one week ago.
+                vaccination rate calculation. Defaults to a week before
+                yesterday.
             front_date (date, optional): More recent date to use for
-                vaccination rate calculation. Defaults to today.
+                vaccination rate calculation. Defaults to yesterday.
             r_0 (float, optional): Reproductive number (sometimes
                 referred to as "r naught"). Defaults to 2.5.
             started_efficacy (float, optional): Efficacy of vaccination
