@@ -22,6 +22,6 @@ setup(
         "Programming Language :: Python :: 3",
     ],
     packages=find_packages(exclude=["tests"]),
-    python_requires=">=3.6",
+    python_requires=">=3.9",
     include_package_data=True,
 )
