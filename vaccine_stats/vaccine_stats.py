@@ -4,6 +4,7 @@ import shutil, os
 from datetime import date, timedelta, datetime
 import csv
 import pathlib
+from typing import Union
 
 
 class Vax_Stats:
@@ -65,7 +66,7 @@ class Vax_Stats:
                 pass
         raise ValueError("ODH date format is not supported.")
 
-    def odh_latest(self):
+    def odh_latest(self) -> date:
         """Find the latest date posted in ODH statistics"""
         latest = date(2020, 12, 14)
         with open(self.data_file.name, newline="") as data_file:
@@ -81,7 +82,7 @@ class Vax_Stats:
         county: str = "All",
         date: date = date.today() - timedelta(1),
         cumulative: bool = True,
-    ) -> tuple:
+    ) -> tuple[int, int]:
         """Lookup county data by date from ODH vaccination records.
 
         Args:
@@ -125,7 +126,7 @@ class Vax_Stats:
         back_date: date = date.today() - timedelta(8),
         front_date: date = date.today() - timedelta(1),
         percent: bool = True,
-    ) -> tuple:
+    ) -> Union[tuple[float, float], tuple[int, int]]:
         """Find change in total vaccinations across two time points.
 
         Args:
