@@ -82,7 +82,7 @@ class Vax_Stats:
         county: str = "All",
         date: date = date.today() - timedelta(1),
         cumulative: bool = True,
-    ) -> tuple[int, int]:
+    ) -> tuple[int, int, int]:
         """Lookup county data by date from ODH vaccination records.
 
         Args:
@@ -93,13 +93,13 @@ class Vax_Stats:
             (default) or single-day data if False.
 
         Returns:
-            tuple: (vaccines started, vaccines completed) where
-                'vaccines started' indicates the number of people who
+            tuple: (vaccines started, vaccines completed, first additional dose)
+                where 'vaccines started' indicates the number of people who
                 received the first dose of COVID vaccine and 'vaccines
                 completed' indicates the number who received their final
-                dose.
+                dose. 'First additional dose' indicates number of boosters.
         """
-        totals = (0, 0)
+        totals = (0, 0, 0)
         with open(self.data_file.name, newline="") as data_file:
             reader = csv.DictReader(data_file)
             for row in reader:
@@ -116,6 +116,7 @@ class Vax_Stats:
                     add = (
                         int(row["vaccines_started"]),
                         int(row["vaccines_completed"]),
+                        int(row["vaccines_first_additional_dose"])
                     )
                     totals = tuple(sum(x) for x in zip(totals, add))
         return totals
@@ -126,7 +127,7 @@ class Vax_Stats:
         back_date: date = date.today() - timedelta(8),
         front_date: date = date.today() - timedelta(1),
         percent: bool = True,
-    ) -> Union[tuple[float, float], tuple[int, int]]:
+    ) -> Union[tuple[float, float, float], tuple[int, int, int]]:
         """Find change in total vaccinations across two time points.
 
         Args:
@@ -141,20 +142,22 @@ class Vax_Stats:
 
         Returns:
             tuple: (change in vaccines started, change in vaccines
-                completed) where 'vaccines started' indicates the number
-                of people who received the first dose of COVID vaccine
-                and 'vaccines completed' indicates the number who
-                received their final dose.
+                completed, change in boosters) where 'vaccines started'
+                indicates the number of people who received the first dose
+                of COVID vaccine and 'vaccines completed' indicates the
+                number who received their final dose.
         """
-        q1, r1 = self.lookup(county, back_date)
-        q2, r2 = self.lookup(county, front_date)
+        q1, r1, s1 = self.lookup(county, back_date)
+        q2, r2, s2 = self.lookup(county, front_date)
         if percent:
             d_started = round((q2 / q1 - 1) * 100, 1)
             d_completed = round((r2 / r1 - 1) * 100, 1)
+            d_boosters = round((s2 / s1 - 1) * 100, 1)
         else:
             d_started = q2 - q1
             d_completed = r2 - r1
-        return (d_started, d_completed)
+            d_boosters = s2 - s1
+        return d_started, d_completed, d_boosters
 
     def percent_vaccinated(
         self,
@@ -176,21 +179,41 @@ class Vax_Stats:
         Returns:
             float: Percent of population vaccinated (between 0 and 100).
         """
-        n_partial, n_full = self.lookup(county, date)
+        n_partial, n_full, _ = self.lookup(county, date)
         if fully_vaccinated:
             vaccinated = n_full
         else:
             vaccinated = n_partial
         return round(vaccinated / self.POPULATION[county] * 100, 1)
 
+    def percent_boosted(
+        self,
+        county: str = "All",
+        date: date = date.today() - timedelta(1),
+    ) -> float:
+        """Get percentage of fully vaccinated individuals who got a booster.
+
+        Args:
+            county (str, optional): County name or "All" for entire
+                state. Defaults to "All".
+            date (date, optional): Date of data. Defaults to yesterday.
+
+        Returns:
+            float: Percentage of fully vaccinated individuals who have
+                received a booster vaccine (between 0 and 100).
+        """
+        _, n_full, n_boosted = self.lookup(county, date)
+        return round(n_boosted / n_full * 100, 1)
+
     def predict_herd_immunity(
         self,
         county: str = "All",
         back_date: date = date.today() - timedelta(8),
         front_date: date = date.today() - timedelta(1),
-        r_0: float = 2.5,
-        started_efficacy: float = 0.5,
-        full_efficacy: float = 0.95,
+        r_0: float = 6.5,
+        started_efficacy: float = 0.1,
+        full_efficacy: float = 0.48,
+        booster_efficacy: float = 0.93,
     ) -> date:
         """Predict at what point herd immunity will be reached.
 
@@ -203,12 +226,15 @@ class Vax_Stats:
             front_date (date, optional): More recent date to use for
                 vaccination rate calculation. Defaults to yesterday.
             r_0 (float, optional): Reproductive number (sometimes
-                referred to as "r naught"). Defaults to 2.5.
+                referred to as "r naught"). Defaults to 6.5.
             started_efficacy (float, optional): Efficacy of vaccination
-                after a single dose (between 0 and 1). Defaults to 0.5.
+                after a single dose (between 0 and 1). Defaults to 0.1.
             full_efficacy (float, optional): Efficacy of vaccination
                 after completing the vaccine series (between 0 and 1).
-                Defaults to 0.95.
+                Defaults to 0.48.
+            booster_efficacy (float, optional): Efficacy of vaccination
+                after receiving a booster (between 0 and 1). Defaults
+                to 0.93.
 
         Returns:
             date: Date prediction of herd immunity.
@@ -219,25 +245,28 @@ class Vax_Stats:
                 years.
         """
         # Calculate total number of currently vaccinated people
-        n_started, n_full = self.lookup(county, front_date)
+        n_started, n_full, n_boosters = self.lookup(county, front_date)
         n_started -= n_full  # Correct for completed series
+        n_full -= n_boosters  # Remove boosters from fully vaccinated pool
 
         # Calculate the rates at which vaccinations are occurring
-        d_started, d_full = self.delta(county, back_date, front_date, False)
+        d_started, d_full, d_boosters = self.delta(county, back_date, front_date, False)
         d_started -= d_full  # Rough estimate correction for completed series
+        d_full -= d_boosters
         d_t = (front_date - back_date).days
         d_started /= d_t
         d_full /= d_t
+        d_boosters /= d_t
 
         population = self.POPULATION[county]
 
         # Look forward up to two years
-        days_to_herd_imm = 0
         for day in range(1, 731):
-            n_started += d_started
-            n_full += d_full
+            n_started = max(n_started + d_started, 0)
+            n_full = max(n_full + d_full, 0)
+            n_boosters += d_boosters
 
-            if n_full + n_started > population:
+            if n_full + n_started + n_boosters > population:
                 raise ValueError("No herd immunity at current rate.")
 
             # Calculate proportional efficacy accounting for the
@@ -245,12 +274,13 @@ class Vax_Stats:
             # completing a dose
             e_started = n_started * started_efficacy
             e_full = n_full * full_efficacy
-            efficacy = (e_started + e_full) / (n_started + n_full)
+            e_booster = n_boosters * booster_efficacy
+            efficacy = (e_started + e_full + e_booster)\
+                       / (n_started + n_full + n_boosters)
 
             # Calculate herd immunity requirement
             herd_pct = (1 - (1 / r_0)) / efficacy
-
-            if n_started + n_full >= population * herd_pct:
-                days_to_herd_imm = day
-                return date.today() + timedelta(days_to_herd_imm)
+            print((n_started, n_full, n_boosters), (d_started, d_full, d_boosters), population, herd_pct)
+            if n_started + n_full + n_boosters >= population * herd_pct:
+                return date.today() + timedelta(day)
         raise ValueError("Herd immunity will take > 2 years.")

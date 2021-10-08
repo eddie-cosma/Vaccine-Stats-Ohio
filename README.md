@@ -156,9 +156,9 @@ The `predict_herd_immunity` function attempts to estimate a date at which herd i
 > ### **Caution**
 > This function makes a number of assumptions that must be carefully considered.
 >
-> * The `r_0` (r<sub>0</sub>) argument defaults to 2.5. This is based on an estimate from the CDC in the absence of widespread masking and social distancing measures.<sup>1</sup> This value was calculated early in the pandemic and is subject to error due to lack of available data at that time. The r<sub>0</sub> of COVID-19 in Ohio with mitigating measures has been closer to 1.0.<sup>1</sup>
-> * The use of r<sub>0</sub> is inherently flawed because if assumes a completely susceptible population.<sup>2</sup> In other words, it does not account for individuals becoming less susceptible due to previous infection or vaccination. Previous estimates of r<sub>0</sub> also do not account for changes in transmissibility due to emerging vaccine variants.
-> * The model currently assumes that a complete vaccination series confers 95% protection against COVID-19 (`full_efficacy=0.95`) whereas a single dose confers 50% protection (`started_efficacy=0.5`).<sup>3,4</sup> Some estimates suggest that a single dose of the vaccine could provide higher levels of protection than previously thought.<sup>5</sup> The model does not take into account the time it takes for immunity to be reached after vaccination and does not account for immunity waning over time.
+> * The `r_0` (r<sub>0</sub>) argument defaults to 6.5. This is based on reports from medical literature and the media in the context of the now-predominant delta variant.<sup>1,2</sup>
+> * The use of r<sub>0</sub> is inherently flawed because if assumes a completely susceptible population.<sup>3</sup> In other words, it does not account for individuals becoming less susceptible due to previous infection or vaccination. Previous estimates of r<sub>0</sub> also do not account for changes in transmissibility due to emerging vaccine variants.
+> * The model currently assumes that a complete vaccination with a booster confers 93% protection against COVID-19 (`booster_efficacy=0.93`), complete vaccination without a booster confers 48% protection (`full_efficacy=0.48`), and a single dose confers 10% protection (`started_efficacy=0.1`).<sup>4,5</sup> The efficacy of a single dose has not been studied in the context of the predominant delta variant, so this number is a guess. The model does not take into account the time it takes for immunity to be reached after vaccination and does not account for immunity waning over time.
 > * The model calculates the rate at which people are being vaccinated using the `delta` function and extrapolates this into the future assuming a linear vaccination rate. In reality, vaccination rates may be nonlinear or otherwise fluctuate based on a number of factors including product availability, emergency use authorization of novel vaccines, and prevailing attitudes towards vaccination.
 > * Because data is analyzed in aggregate for the state of Ohio, the assumption is that vaccination pravalence and incidence are homogenous across the state. This is not the case. Because of differences in geographic vaccination rates, many areas may see herd immunity slower than predicted.
 >
@@ -181,8 +181,8 @@ This software is licensed under the [MIT License](https://choosealicense.com/lic
 
 # References
 
-1. https://coronavirus.ohio.gov/wps/portal/gov/covid-19/resources/news-releases-news-you-can-use/basic-reproduction-number-pop-up-sites
-1. Delamater PL, Street EJ, Leslie TF, Yang YT, Jacobsen KH. Complexity of the Basic Reproduction Number (R<sub>0</sub>). *Emerging Infectious Diseases*. 2019;25(1):1–4.
-1. Polack FP, Thomas SJ, Kitchin N, Absalon J, Gurtman A, Lockhart S, et al. Safety and Efficacy of the BNT162b2 mRNA Covid-19 Vaccine. *New England Journal of Medicine*. 2020;383(27):2603–15.
-1. Baden LR, El Sahly HM, Essink B, Kotloff K, Frey S, Novak R, et al. Efficacy and Safety of the mRNA-1273 SARS-CoV-2 Vaccine. *New England Journal of Medicine*. 2021;384(5):403–16.
-1. Skowronski DM, De Serres G. Safety and Efficacy of the BNT162b2 mRNA Covid-19 Vaccine. *New England Journal of Medicine*. Published online February 17, 2021.
+1. Kang M, Xin H, Yuan J, et al. Transmission Dynamics and Epidemiological Characteristics of Delta Variant Infections in China. *Epidemiology*. 2021.
+2. https://www.npr.org/sections/goatsandsoda/2021/08/11/1026190062/covid-delta-variant-transmission-cdc-chickenpox
+3. https://coronavirus.ohio.gov/wps/portal/gov/covid-19/resources/news-releases-news-you-can-use/basic-reproduction-number-pop-up-sites
+4. Delamater PL, Street EJ, Leslie TF, Yang YT, Jacobsen KH. Complexity of the Basic Reproduction Number (R<sub>0</sub>). *Emerging Infectious Diseases*. 2019;25(1):1–4.
+5. Tartof SY, Slezak JM, Fischer H, et al. Effectiveness of mRNA BNT162b2 COVID-19 vaccine up to 6 months in a large integrated health system in the USA: a retrospective cohort study. *The Lancet*. Published online October 2021:S0140673621021838.
