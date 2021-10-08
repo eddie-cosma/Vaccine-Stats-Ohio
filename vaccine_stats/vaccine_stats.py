@@ -280,7 +280,7 @@ class Vax_Stats:
 
             # Calculate herd immunity requirement
             herd_pct = (1 - (1 / r_0)) / efficacy
-            print((n_started, n_full, n_boosters), (d_started, d_full, d_boosters), population, herd_pct)
+
             if n_started + n_full + n_boosters >= population * herd_pct:
                 return date.today() + timedelta(day)
         raise ValueError("Herd immunity will take > 2 years.")
