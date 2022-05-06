@@ -1,3 +1,6 @@
+# Archival notice
+Because of changes in the COVID landscape over the last six months and a decreased interest in this data, I am archiving this repository effective May 6, 2022. Thank you to everyone who showed their support for this project. Stay safe and be kind.
+
 # Vaccine-Stats-Ohio
 Vaccine-Stats-Ohio is a Python library for accessing and summarizing Ohio COVID vaccine statistics.
 
